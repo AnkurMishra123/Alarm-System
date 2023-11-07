@@ -1,7 +1,7 @@
 import cv2
 import threading
 import winsound
-
+import requests
 import imutils
 
 #start camera
@@ -21,19 +21,29 @@ alarm_mode=False
 alarm_counter=0
 
 
+def message_bot(bot_message):
+    
+    TOKEN = "<Enter your token for the telegram bot>"
+    chat_id = "<Enter the token for the chat bot>"
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_id}&text={bot_message}"
+    print(requests.get(url).json()) # this sends the message
+
+
+    
 def beep_alarm():
-    cnt=0
     global alarm
+
     for _ in range(5):
         if not alarm_mode:
             break
         print("ALARM")
-        cnt+=1
-        if cnt>6:
-             # We have to send the alert
-             and cnt=0
-        winsound.Beep(2500,1000)
+        # We have to send the alert
+        winsound.Beep(2500, 1000)
     alarm = False
+
+    if alarm_counter >= 5:  # Add this condition to trigger the message_bot function
+        message_bot("Alarm has been hit 5 times!")
+
 
 while True:
 
@@ -61,6 +71,7 @@ while True:
     if alarm_counter>20:
         if not alarm:
             alarm=True
+            
             threading.Thread(target=beep_alarm).start()
     
     key_pressed= cv2.waitKey(30)
